@@ -171,8 +171,16 @@ void parseSingle(PPARSER p, PEXP e) {
   
   enum TOKEN t = ((PPAIR)p->node->v)->token;  
   if (t == NUM) {
-    e->exp = p->node->v;
     printf("NUM\n");
+    e->exp = p->node->v;
+  }
+  else if (t == BRA) {
+    printf("( TERM )\n");
+    printf("(\n");
+    p->node = p->node->n;
+    parseTerm(p, e);
+    printf(")\n");
+    p->node = p->node->n;
   }
 }
 
