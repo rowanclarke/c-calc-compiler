@@ -32,6 +32,8 @@ enum TOKEN token(char c, enum TOKEN ct) {
     else return NUM;
   }
   switch (c) {
+  case (';'):
+    return SEMI;
   case ('='):
     return ASGN;
   case ('+'):

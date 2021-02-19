@@ -4,26 +4,27 @@
 // TOKENS
 
 enum TOKEN {
-	END,
-	ID,
-	NUM,
-	ASGN,
-	ADD,
-	SUB,
-	MULT,
-	DIV,
-	BRA,
-	KET
+  END,
+  ID,
+  NUM,
+  SEMI,
+  ASGN,
+  ADD,
+  SUB,
+  MULT,
+  DIV,
+  BRA,
+  KET
 };
 
 typedef struct {
-	enum TOKEN token;
-	char *lexeme;
+  enum TOKEN token;
+  char *lexeme;
 } PAIR, *PPAIR;
 
 typedef struct {
-	int position;
-	char *program;
+  int position;
+  char *program;
 } SCANNER, *PSCANNER;
 
 void tokenise(PSCANNER scanner, PDLLIST list);

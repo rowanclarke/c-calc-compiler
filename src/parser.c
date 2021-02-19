@@ -7,8 +7,25 @@
 #include "parser.h"
 #include "ast.h"
 
+void eat(PPARSER p, enum TOKEN token) {
+  printf(">>> %s\n", ((PPAIR)p->node->v)->lexeme);
+  if (((PPAIR)p->node->v)->token != token) {
+    printf("ERROR\n");
+  }
+  p->node = p->node->n;
+}
+
 void parse(PAST ast, PDLLIST list) {
   /*  
+   *
+   * STMT
+   * : EXP ; STMT
+   * ;
+   *
+   * EXP
+   * : ID ID
+   * | ID = TERM
+   * ;
    *
    * TERM
    * : FACT
@@ -31,9 +48,55 @@ void parse(PAST ast, PDLLIST list) {
   ast->root = exp;
   PPARSER p = malloc(sizeof(PARSER));
   p->node = list->h;
-  parseTerm(p, exp);
+  parseStatement(p, exp);
 }
 
+void parseStatement(PPARSER p, PEXP e) {
+  printf("STMT\n");
+  enum TOKEN t = ((PPAIR)p->node->n->v)->token;
+  if (t != END) {
+    e->strt = STMTT;
+  
+    PSTMTEXP stmt = malloc(sizeof(STMTEXP));
+    e->exp = stmt;
+    
+    stmt->exp = malloc(sizeof(EXP));
+    parseExpression(p, stmt->exp);
+    
+    eat(p, SEMI);
+    stmt->next = malloc(sizeof(EXP));
+    stmt->next->strt = ENDT;
+    parseStatement(p, stmt->next);
+  }
+}
+
+void parseExpression(PPARSER p, PEXP e) {
+  enum TOKEN t = ((PPAIR)p->node->n->v)->token;
+  if (t == ASGN) {
+    printf("ASGN\n");
+    e->strt = BINT;
+    PBINEXP be = malloc(sizeof(BINEXP));
+    be->op = t;
+    e->exp = be;
+    PEXP left = malloc(sizeof(EXP));
+    left->strt = PAIRT;
+    left->exp = p->node->v;
+    PEXP right = malloc(sizeof(EXP));
+    be->left = left;
+    be->right = right;
+    p->node = p->node->n->n;
+    parseTerm(p, right);
+  }
+  else if (t == ID) {
+    printf("DCLR\n");
+    e->strt = DCLRT;
+    PDCLREXP dclr = malloc(sizeof(DCLREXP));
+    e->exp = dclr;
+    dclr->set = (PPAIR)p->node->v;
+    dclr->id = (PPAIR)p->node->n->v;
+    p->node = p->node->n->n;
+  }
+}
 
 void parseTerm(PPARSER p, PEXP e) {
   printf("TERM\n");
@@ -51,10 +114,10 @@ void parseTerm(PPARSER p, PEXP e) {
     PEXP right = malloc(sizeof(EXP));
 
     // redo skip
-    left->expt = e->expt;
+    left->strt = e->strt;
     left->exp = e->exp;
 
-    e->expt = BINT;
+    e->strt = BINT;
     e->exp = be;
     
     be->op = t;
@@ -70,6 +133,8 @@ void parseTerm(PPARSER p, PEXP e) {
     // check again
     t = ((PPAIR)p->node->n->v)->token;
   }
+  // finalise term
+  p->node = p->node->n;
 }
 
 void parseFactor(PPARSER p, PEXP e) {  
@@ -89,10 +154,10 @@ void parseFactor(PPARSER p, PEXP e) {
     PEXP right = malloc(sizeof(EXP));
 
     // redo skip
-    left->expt = e->expt;
+    left->strt = e->strt;
     left->exp = e->exp;
 
-    e->expt = BINT;
+    e->strt = BINT;
     e->exp = be;
     
     be->op = t;
@@ -112,7 +177,7 @@ void parseFactor(PPARSER p, PEXP e) {
 
 void parseSingle(PPARSER p, PEXP e) {
   printf("SING\n");
-  e->expt = PAIRT;
+  e->strt = PAIRT;
   
   enum TOKEN t = ((PPAIR)p->node->v)->token;  
   if (t == NUM) {
