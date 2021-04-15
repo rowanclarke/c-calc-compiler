@@ -11,13 +11,23 @@ void printAST(PAST ast) {
 }
 
 void printExpression(PEXP e, int i) {
-  if (e->expt == BINT) {
+  if (e->strt == STMTT) {
+    PSTMTEXP stmt = (PSTMTEXP)e->exp;
+    printExpression(stmt->exp, i);
+    printExpression(stmt->next, i);
+  }
+  else if (e->strt == DCLRT) {
+    PDCLREXP dclr = (PDCLREXP)e->exp;
+    printIndentation(i);
+    printf("(%s:%s)\n", dclr->set->lexeme, dclr->id->lexeme);
+  }
+  else if (e->strt == BINT) {
     PBINEXP be = (PBINEXP)e->exp;
     printOperator(be->op, i);
     printExpression(be->left, i+1);
     printExpression(be->right, i+1);
   }
-  else if (e->expt == PAIRT) {
+  else if (e->strt == PAIRT) {
     // SING => num
     printIndentation(i);
     PPAIR pair = (PPAIR)e->exp;
@@ -29,6 +39,9 @@ void printExpression(PEXP e, int i) {
 void printOperator(enum TOKEN op, int i) {
   printIndentation(i);
   switch (op) {
+  case (ASGN):
+    printf("=\n");
+    break;
   case (ADD):
     printf("+\n");
     break;
@@ -41,6 +54,8 @@ void printOperator(enum TOKEN op, int i) {
   case (DIV):
     printf("/\n");
     break;
+  default:
+    printf("(NE)\n");
   }
 }
 
