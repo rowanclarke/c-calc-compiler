@@ -38,6 +38,7 @@ typedef struct {
   PEXP root;
 } AST, *PAST;
 
+void next(PPARSER p);
 void eat(PPARSER p, enum TOKEN token);
 void parse(PAST ast, PDLLIST list);
 void parseStatement(PPARSER p, PEXP e);

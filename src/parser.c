@@ -7,10 +7,15 @@
 #include "parser.h"
 #include "ast.h"
 
+void next(PPARSER p) {
+  printf("SKIP %s\n", ((PPAIR)p->node->v)->lexeme);
+  p->node = p->node->n;
+}
+
 void eat(PPARSER p, enum TOKEN token) {
-  printf(">>> %s\n", ((PPAIR)p->node->v)->lexeme);
+  printf("EAT %s\n", ((PPAIR)p->node->v)->lexeme);
   if (((PPAIR)p->node->v)->token != token) {
-    printf("ERROR\n");
+    printf("Syntax error: unexpected token \'%s\', expected \'%s\'\n", tokenStr(((PPAIR)p->node->v)->token), tokenStr(token));
   }
   p->node = p->node->n;
 }
@@ -34,11 +39,11 @@ void parse(PAST ast, PDLLIST list) {
    *
    * FACT
    * : SING
-   * | SING * SING
+   * | SING SING
    * ;
    * 
    * SING
-   * : NUM
+   * : LIT
    * | ( TERM )
    * ;
    *
@@ -53,7 +58,7 @@ void parse(PAST ast, PDLLIST list) {
 
 void parseStatement(PPARSER p, PEXP e) {
   printf("STMT\n");
-  enum TOKEN t = ((PPAIR)p->node->n->v)->token;
+  enum TOKEN t = ((PPAIR)p->node->v)->token;
   if (t != END) {
     e->strt = STMTT;
   
@@ -84,7 +89,8 @@ void parseExpression(PPARSER p, PEXP e) {
     PEXP right = malloc(sizeof(EXP));
     be->left = left;
     be->right = right;
-    p->node = p->node->n->n;
+    eat(p, ID);
+    eat(p, ASGN);
     parseTerm(p, right);
   }
   else if (t == ID) {
@@ -94,19 +100,19 @@ void parseExpression(PPARSER p, PEXP e) {
     e->exp = dclr;
     dclr->set = (PPAIR)p->node->v;
     dclr->id = (PPAIR)p->node->n->v;
-    p->node = p->node->n->n;
+    eat(p, ID);
+    eat(p, ID);
   }
 }
 
 void parseTerm(PPARSER p, PEXP e) {
   printf("TERM\n");
-  
+  // skip
   parseFactor(p, e);
   
-  enum TOKEN t = ((PPAIR)p->node->n->v)->token;  
+  enum TOKEN t = ((PPAIR)p->node->v)->token;  
   while (t == ADD || t == SUB) {
-    printf("FACT +|- FACT\n");
-    
+    printf("ADD\n");
     // binary operation
     PBINEXP be = malloc(sizeof(BINEXP));
 
@@ -125,7 +131,7 @@ void parseTerm(PPARSER p, PEXP e) {
     be->right = right;
     
     // shift node to right
-    p->node = p->node->n->n;
+    next(p); // + -
     
     // right
     parseFactor(p, right);
@@ -133,20 +139,16 @@ void parseTerm(PPARSER p, PEXP e) {
     // check again
     t = ((PPAIR)p->node->n->v)->token;
   }
-  // finalise term
-  p->node = p->node->n;
 }
 
 void parseFactor(PPARSER p, PEXP e) {  
   printf("FACT\n");
-
   // skip
   parseSingle(p, e);
   
-  enum TOKEN t = ((PPAIR)p->node->n->v)->token;
+  enum TOKEN t = ((PPAIR)p->node->v)->token;
   while (t == MULT || t == DIV) {
-    printf("SING *|/ SING\n");
-
+    printf("MULT\n");
     // binary expression
     PBINEXP be = malloc(sizeof(BINEXP));
     
@@ -165,13 +167,13 @@ void parseFactor(PPARSER p, PEXP e) {
     be->right = right;
 
     // shift node to right
-    p->node = p->node->n->n;
-    
+    next(p); // * /
+
     // right
     parseSingle(p, right);
 
     // check again
-    t = ((PPAIR)p->node->n->v)->token;
+    t = ((PPAIR)p->node->v)->token;
   }
 }
 
@@ -183,13 +185,12 @@ void parseSingle(PPARSER p, PEXP e) {
   if (t == NUM) {
     printf("NUM\n");
     e->exp = p->node->v;
+    eat(p, NUM);
   }
   else if (t == BRA) {
-    printf("( TERM )\n");
-    printf("(\n");
-    p->node = p->node->n;
+    printf("BRA\n");
+    eat(p, BRA);
     parseTerm(p, e);
-    printf(")\n");
-    p->node = p->node->n;
+    eat(p, KET);
   }
 }

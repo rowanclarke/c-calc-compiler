@@ -9,7 +9,7 @@
 
 #define MAX_FILE 2048
 
-void readf(char *filename, char *dest) {
+void read(char *filename, char *dest) {
   FILE *fp;
   fp = fopen(filename, "r");
   if (fp == NULL) perror("Error opening file");
@@ -20,13 +20,12 @@ void readf(char *filename, char *dest) {
 void main(int argc, char **argv) {
   PSCANNER scanner = malloc(sizeof(SCANNER));
   scanner->position = 0;
-  char program[MAX_FILE];
-  readf(argv[1], program);
-	
-  scanner->program = program;
-	
-  printf("%s\n", program);
-	
+  scanner->program = calloc(MAX_FILE, sizeof(char));
+
+  read(argv[1], scanner->program);
+  
+  printf("%s\n", scanner->program);
+
   PDLLIST list = malloc(sizeof(DLLIST));
   tokenise(scanner, list);
 	
@@ -34,6 +33,6 @@ void main(int argc, char **argv) {
   parse(ast, list);
   printAST(ast);
 	
-  system("PAUSE");
+  system("pause");
 }
 

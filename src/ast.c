@@ -54,6 +54,8 @@ void printOperator(enum TOKEN op, int i) {
   case (DIV):
     printf("/\n");
     break;
+  default:
+    printf("(NE)\n");
   }
 }
 

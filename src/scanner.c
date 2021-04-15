@@ -7,20 +7,22 @@
 #include "parser.h"
 #include "ast.h"
 
-void tokenise(PSCANNER scanner, PDLLIST list) {
+void tokenise(PSCANNER s, PDLLIST list) {
   int i = 0;
   
   list->s = 0;
   PDNODE b;
-  while (scanner->program[scanner->position]) {	
+  while (1) {	
     PPAIR pair = malloc(sizeof(PAIR));
-    nextPair(scanner, pair);
+    nextPair(s, pair);
 
     PDNODE c = malloc(sizeof(DNODE));
     c->v = pair;
     if (list->s == 0) initDouble(list, c);
     else addAfterDouble(list, b, c);
     b = c;
+
+    if (pair->token == END) break;
   }
   printDouble(list, printPair);
 }
@@ -61,17 +63,18 @@ void nextPair(PSCANNER s, PPAIR pair) {
   int i, j;
   int head = s->position;
   i = 0;
-  do { // while there is a char
-    // get first character of token
+  ct = END;
+  while (1) {
+    // get character
     c = s->program[s->position];
-		
+		if (c == '\0') break;
     if (c == '\t' || c == '\n' || c == ' ') {
       // whitespace
       if (i == 0) {
-	// start of token => increment 
-	head++;
-	s->position++;
-	continue;
+        // start of token => increment 
+        head++;
+        s->position++;
+        continue;
       }
       // it cuts the token, end
       break;
@@ -87,9 +90,9 @@ void nextPair(PSCANNER s, PPAIR pair) {
     if (t != ct) break;
     // else next char
     s->position++;
-  } while (c);
-  pair->token = ct;
-  pair->lexeme = calloc(s->position-head-1,sizeof(char));
+  }
+  pair->token = ct; 
+  pair->lexeme = calloc(s->position-head-1, sizeof(char));
   j = 0;
   for (i = head; i < s->position; i++) {
     pair->lexeme[j] = s->program[i];
@@ -98,5 +101,34 @@ void nextPair(PSCANNER s, PPAIR pair) {
 }
 
 void printPair(void *pair) {
-  printf("{%s,%d}", ((PPAIR)pair)->lexeme, ((PPAIR)pair)->token);
+  printf("{%s,%s}", ((PPAIR)pair)->lexeme, tokenStr(((PPAIR)pair)->token));
+}
+
+char* tokenStr(enum TOKEN t) {
+  switch (t) {
+  case (END):
+    return "END";
+  case (ID):
+    return "ID";
+  case (NUM):
+    return "NUM";
+  case (SEMI):
+    return "SEMI";
+  case (ASGN):
+    return "ASGN";
+  case (ADD):
+    return "ADD";
+  case (SUB):
+    return "SUB";
+  case (MULT):
+    return "MULT";
+  case (DIV):
+    return "DIV";
+  case (BRA):
+    return "BRA";
+  case (KET):
+    return "KET";
+  default:
+    return "NONE";
+  }
 }

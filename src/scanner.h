@@ -4,6 +4,7 @@
 // TOKENS
 
 enum TOKEN {
+  NONE,
   END,
   ID,
   NUM,
@@ -27,9 +28,9 @@ typedef struct {
   char *program;
 } SCANNER, *PSCANNER;
 
-void tokenise(PSCANNER scanner, PDLLIST list);
+void tokenise(PSCANNER s, PDLLIST list);
 enum TOKEN token(char c, enum TOKEN ct);
 void nextPair(PSCANNER s, PPAIR pair);
 void printPair(void *pair);
-
+char* tokenStr(enum TOKEN t);
 #endif
