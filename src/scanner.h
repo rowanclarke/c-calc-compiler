@@ -12,10 +12,17 @@ enum TOKEN {
   ASGN,
   ADD,
   SUB,
-  MULT,
-  DIV,
+  RECP,
   BRA,
   KET
+};
+
+enum OPER {
+  OP_ASGN,
+  OP_ADD,
+  OP_SUB,
+  OP_CAT,
+  OP_RECP
 };
 
 typedef struct {

@@ -27,6 +27,11 @@ void printExpression(PEXP e, int i) {
     printExpression(be->left, i+1);
     printExpression(be->right, i+1);
   }
+  else if (e->strt == SINT) {
+    PSINEXP se = (PSINEXP)e->exp;
+    printOperator(se->op, i);
+    printExpression(se->exp, i+1);
+  }
   else if (e->strt == PAIRT) {
     // SING => num
     printIndentation(i);
@@ -36,23 +41,23 @@ void printExpression(PEXP e, int i) {
   }
 }
 
-void printOperator(enum TOKEN op, int i) {
+void printOperator(enum OPER op, int i) {
   printIndentation(i);
   switch (op) {
-  case (ASGN):
+  case (OP_ASGN):
     printf("=\n");
     break;
-  case (ADD):
+  case (OP_ADD):
     printf("+\n");
     break;
-  case (SUB):
+  case (OP_SUB):
     printf("-\n");
     break;
-  case (MULT):
+  case (OP_CAT):
     printf("*\n");
     break;
-  case (DIV):
-    printf("/\n");
+  case (OP_RECP):
+    printf("\'\n");
     break;
   default:
     printf("(NE)\n");

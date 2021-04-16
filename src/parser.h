@@ -5,6 +5,7 @@ enum STRT {
   STMTT,
   DCLRT,
   BINT,
+  SINT,
   PAIRT,
   ENDT
 };
@@ -17,10 +18,15 @@ typedef struct {
 typedef struct {
   PEXP left;
   PEXP right;
-  enum TOKEN op;
+  enum OPER op;
 } BINEXP, *PBINEXP;
 
-typedef struct SSTMTEXP {
+typedef struct {
+  PEXP exp;
+  enum OPER op;
+} SINEXP, *PSINEXP;
+
+typedef struct {
   PEXP exp;
   PEXP next;
 } STMTEXP, *PSTMTEXP;
@@ -45,6 +51,7 @@ void parseStatement(PPARSER p, PEXP e);
 void parseExpression(PPARSER p, PEXP e);
 void parseTerm(PPARSER p, PEXP e);
 void parseFactor(PPARSER p, PEXP e);
+void parseReciprocol(PPARSER p, PEXP e);
 void parseSingle(PPARSER p, PEXP e);
 
 #endif

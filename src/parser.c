@@ -38,8 +38,13 @@ void parse(PAST ast, PDLLIST list) {
    * ;
    *
    * FACT
+   * : RECP
+   * | RECP RECP
+   * ;
+   * 
+   * RECP
    * : SING
-   * | SING SING
+   * | SING '
    * ;
    * 
    * SING
@@ -81,7 +86,7 @@ void parseExpression(PPARSER p, PEXP e) {
     printf("ASGN\n");
     e->strt = BINT;
     PBINEXP be = malloc(sizeof(BINEXP));
-    be->op = t;
+    be->op = OP_ASGN;
     e->exp = be;
     PEXP left = malloc(sizeof(EXP));
     left->strt = PAIRT;
@@ -119,14 +124,14 @@ void parseTerm(PPARSER p, PEXP e) {
     PEXP left = malloc(sizeof(EXP));
     PEXP right = malloc(sizeof(EXP));
 
-    // redo skip
+    // embed skiped expression
     left->strt = e->strt;
     left->exp = e->exp;
 
     e->strt = BINT;
     e->exp = be;
     
-    be->op = t;
+    be->op = (t == ADD) ? OP_ADD : OP_SUB;
     be->left = left;
     be->right = right;
     
@@ -137,17 +142,17 @@ void parseTerm(PPARSER p, PEXP e) {
     parseFactor(p, right);
 
     // check again
-    t = ((PPAIR)p->node->n->v)->token;
+    t = ((PPAIR)p->node->v)->token;
   }
 }
 
 void parseFactor(PPARSER p, PEXP e) {  
   printf("FACT\n");
   // skip
-  parseSingle(p, e);
+  parseReciprocol(p, e);
   
   enum TOKEN t = ((PPAIR)p->node->v)->token;
-  while (t == MULT || t == DIV) {
+  while (t == ID || t == NUM || t == BRA) {
     printf("MULT\n");
     // binary expression
     PBINEXP be = malloc(sizeof(BINEXP));
@@ -155,25 +160,49 @@ void parseFactor(PPARSER p, PEXP e) {
     PEXP left = malloc(sizeof(EXP));
     PEXP right = malloc(sizeof(EXP));
 
-    // redo skip
+    // embed skiped expression
     left->strt = e->strt;
     left->exp = e->exp;
 
     e->strt = BINT;
     e->exp = be;
     
-    be->op = t;
+    be->op = OP_CAT;
     be->left = left;
     be->right = right;
 
-    // shift node to right
-    next(p); // * /
-
     // right
-    parseSingle(p, right);
+    parseReciprocol(p, right);
 
     // check again
     t = ((PPAIR)p->node->v)->token;
+  }
+}
+
+void parseReciprocol(PPARSER p, PEXP e) {  
+  printf("RECIP\n");
+  // skip
+  parseSingle(p, e);
+
+  enum TOKEN t = ((PPAIR)p->node->v)->token;
+  if (t == RECP) {
+    printf("RECP\n");
+    // single expression
+    PSINEXP se = malloc(sizeof(SINEXP));
+    
+    PEXP exp = malloc(sizeof(EXP));
+
+    // embed skiped expression
+    exp->strt = e->strt;
+    exp->exp = e->exp;
+
+    e->strt = SINT;
+    e->exp = se;
+    
+    se->op = OP_RECP;
+    se->exp = exp;
+
+    eat(p, RECP);
   }
 }
 
@@ -186,6 +215,11 @@ void parseSingle(PPARSER p, PEXP e) {
     printf("NUM\n");
     e->exp = p->node->v;
     eat(p, NUM);
+  }
+  else if (t == ID) {
+    printf("ID\n");
+    e->exp = p->node->v;
+    eat(p, ID);
   }
   else if (t == BRA) {
     printf("BRA\n");

@@ -34,6 +34,8 @@ enum TOKEN token(char c, enum TOKEN ct) {
     else return NUM;
   }
   switch (c) {
+  case ('\0'):
+    return END;
   case (';'):
     return SEMI;
   case ('='):
@@ -42,16 +44,14 @@ enum TOKEN token(char c, enum TOKEN ct) {
     return ADD;
   case ('-'):
     return SUB;
-  case ('*'):
-    return MULT;
-  case ('/'):
-    return DIV;
+  case ('\''):
+    return RECP;
   case ('('):
     return BRA;
   case (')'):
     return KET;
   default:
-    return END;
+    return NONE;
   }
 }
 
@@ -120,10 +120,8 @@ char* tokenStr(enum TOKEN t) {
     return "ADD";
   case (SUB):
     return "SUB";
-  case (MULT):
-    return "MULT";
-  case (DIV):
-    return "DIV";
+  case (RECP):
+    return "RECP";
   case (BRA):
     return "BRA";
   case (KET):
